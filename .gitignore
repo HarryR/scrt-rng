@@ -1,0 +1,5 @@
+target
+.bash_history
+*.swp
+*.swo
+Cargo.lock

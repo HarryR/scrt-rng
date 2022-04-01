@@ -1,0 +1,14 @@
+FROM ubuntu:latest 
+RUN apt-get update && apt-get install -y curl gcc make
+RUN useradd -d /rust -m rust
+USER rust 
+RUN curl --proto '=https' --tlsv1.3 -sSf https://sh.rustup.rs | sh -s -- -y 
+
+RUN /rust/.cargo/bin/rustup target add wasm32-unknown-unknown
+
+ENV HISTFILESIZE=0
+WORKDIR /src
+COPY . /src
+
+RUN /rust/.cargo/bin/cargo update
+RUN /rust/.cargo/bin/cargo fetch
