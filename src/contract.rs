@@ -2,7 +2,7 @@ use std::option::Option;
 
 use secret_cosmwasm_std::{Storage, Api, Querier, InitResponse, StdError,
                           StdResult, Extern, Env, WasmMsg, to_binary,
-                          HumanAddr, Binary, HandleResponse, QueryResult};
+                          HumanAddr, HandleResponse, QueryResult};
 
 use serde::{Deserialize, Serialize};
 
@@ -16,11 +16,11 @@ const SEED_KEY: &[u8] = b"seed";
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum InterContractHandle
+pub enum RemoteContract
 {
-    Receive {
+    ReceiveRandom {
         rn: [u8; 32],
-        cb_msg: Binary },
+        cb_msg: String },
 }
 
 
@@ -33,7 +33,7 @@ pub struct InitMsg { }
 pub enum HandleMsg
 {
     Callback {
-        cb_msg: Binary,
+        cb_msg: String,
         callback_code_hash: String,
         contract_addr: HumanAddr },
 
@@ -156,13 +156,13 @@ mod rng
 // -----------------------------------------------------------------
 
 
+// Note: https://www.johndcook.com/blog/2020/02/22/chacha-rng-with-fewer-rounds/
 #[cfg(feature="rng_sha256chacha20")]
 mod rng
 {
     use std::option::Option;
     use secret_cosmwasm_std::Env;
 
-    // Note: https://www.johndcook.com/blog/2020/02/22/chacha-rng-with-fewer-rounds/
     use rand_chacha::ChaCha20Rng;
     use rand_chacha::rand_core::{SeedableRng, RngCore};
     use sha2::{Sha256, Digest};
@@ -241,12 +241,12 @@ fn get_rn<S: Storage, A: Api, Q: Querier>(
 fn handle_callback<S: Storage, A: Api, Q: Querier>( 
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    cb_msg: Binary,
+    cb_msg: String,
     contract_addr: HumanAddr,
     callback_code_hash: String,
 ) -> StdResult<HandleResponse>
 {
-    let msg = to_binary(&InterContractHandle::Receive {
+    let msg = to_binary(&RemoteContract::ReceiveRandom {
         rn: get_rn(deps, &env, &None)?,
         cb_msg
     })?;
@@ -288,7 +288,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     _msg: InitMsg
 ) -> StdResult<InitResponse>
 {
-    let seed = [0u8; 32];
+    let seed = [0u8; 32];   // contract is always deployed in a consistent state
 
     deps.storage.set(SEED_KEY, &seed);
 

@@ -1,5 +1,5 @@
 [package]
-name = "scrt-x"
+name = "scrt-rng"
 version = "0.1.0"
 authors = ["HarryR"]
 edition = "2021"
@@ -15,7 +15,7 @@ codegen-units = 1
 panic = 'abort'
 incremental = false
 overflow-checks = true
-debuginfo = false
+strip = true
 
 
 [lib]
@@ -32,9 +32,13 @@ rng_sha256chacha20 = ["rand_chacha", "sha2"]
 [dependencies]
 secret-cosmwasm-storage = "0.10"
 secret-cosmwasm-std = "0.10"
-serde = "1.0"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
 schemars = "0.7.6"
 blake2 = { version = "0.10", optional = true }
 xoodyak = { version = "0.7", optional = true }
 rand_chacha = { version = "0.3", optional = true }
 sha2 = { version = "0.10", optional = true }
+
+
+[dev-dependencies]
+cosmwasm-schema = {version = "0.9"}
